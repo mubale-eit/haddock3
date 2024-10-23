@@ -61,11 +61,9 @@ add_version_arg(ap)
 def _ap() -> ArgumentParser:
     return ap
 
-
 def load_args(ap: ArgumentParser) -> Namespace:
     """Load argument parser args."""
     return ap.parse_args()
-
 
 def cli(ap: ArgumentParser, main: Callable[..., None]) -> None:
     """Command-line interface entry point."""
@@ -73,13 +71,13 @@ def cli(ap: ArgumentParser, main: Callable[..., None]) -> None:
     main(**vars(cmd))
 
 
-def maincli() -> None:
+def maincli(config_dict) -> None:
     """Execute main client."""
-    cli(ap, main)
+    main(workflow=config_dict)
 
 
 def main(
-    workflow: FilePath,
+    workflow: dict,
     restart: Optional[int] = None,
     extend_run: Optional[FilePath] = EXTEND_RUN_DEFAULT,
     setup_only: bool = False,
@@ -100,7 +98,7 @@ def main(
     extend_run : str or Path
         The path created with `haddock3-copy` to start the run from.
         Defaults to None, which ignores this option.
-
+t
     setup_only : bool, optional
         Whether to setup the run without running it.
         Defaults to False.

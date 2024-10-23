@@ -69,7 +69,6 @@ from haddock.libs.libutil import (
     transform_to_list,
 )
 
-
 # the re.ASCII parameter makes sure non-ascii chars are rejected in the \w key
 
 # Captures the main headers.
@@ -113,7 +112,7 @@ class ConfigFormatError(Exception):
 
 
 # main public API
-def load(fpath: FilePath) -> ParamDict:
+def load(fdict: dict) -> ParamDict:
     """
     Load an HADDOCK3 configuration file to a dictionary.
 
@@ -135,14 +134,14 @@ def load(fpath: FilePath) -> ParamDict:
         * :py:func:`loads`
     """
     try:
-        return loads(Path(fpath).read_text())
+        return loads(fdict)
     except Exception as err:
         raise ConfigurationError(
             "Something is wrong with the config file."
         ) from err  # noqa: E501
 
 
-def loads(cfg_str: str) -> ParamDict:
+def loads(cfg_dict: dict) -> ParamDict:
     """
     Read a string representing a config file to a dictionary.
 
@@ -173,61 +172,12 @@ def loads(cfg_str: str) -> ParamDict:
           the order of the keys matters as it defines the order of the
           steps in the workflow.
     """
-    new_lines: list[str] = []
-    cfg_lines = cfg_str.split(os.linesep)
-    counter: dict[str, int] = {}
-
-    # this for-loop normalizes all headers regardless of their input format.
-    for line in cfg_lines:
-        if group := _main_header_re.match(line):
-            name = group[1]
-            counter.setdefault(name, 0)
-            counter[name] += 1
-            count = counter[name]
-            new_line = f"['{name}.{count}']"
-
-        elif group := _main_quoted_header_re.match(line):
-            name = group[1]
-            counter.setdefault(name, 0)
-            counter[name] += 1
-            count = counter[name]
-            new_line = f"['{name}.{count}']"
-
-        elif group := _sub_header_re.match(line):
-            name = group[1]
-            count = counter[name]  # name should be already defined here
-            new_line = f"['{name}.{count}'{group[2]}]"
-
-        elif group := _sub_quoted_header_re.match(line):
-            name = group[1]
-            count = counter[name]  # name should be already defined here
-            new_line = f"['{name}.{count}'{group[2]}]"
-
-        elif group := _uppercase_bool_re.match(line):
-            param = group[1]  # Catches 'param = '
-            uppercase_bool = group[4]
-            new_line = f"{param}{uppercase_bool.lower()}"  # Lowercase bool
-
-        else:
-            new_line = line
-
-        new_lines.append(new_line)
-
-    # Re-build workflow configuration file
-    cfg = os.linesep.join(new_lines)
-
-    try:
-        cfg_dict = toml.loads(cfg)  # Try to load it with the toml library
-    except Exception as err:
-        raise ConfigurationError(
-            "Some thing is wrong with the config file: " f"{str(err)}"
-        ) from err
 
     final_cfg = convert_variables_to_paths(cfg_dict)
 
     all_configs = {
-        "raw_input": cfg_str,
-        "cleaned_input": cfg,
+        "raw_input": cfg_dict,
+        "cleaned_input": cfg_dict,
         "loaded_cleaned_input": cfg_dict,
         "final_cfg": final_cfg,
     }

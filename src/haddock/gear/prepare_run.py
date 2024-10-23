@@ -212,7 +212,7 @@ def gen_defaults_module_param_path(module_name_: str) -> Path:
 
 
 def setup_run(
-    workflow_path: FilePath,
+    workflow: dict,
     restart_from: Optional[int] = None,
     extend_run: Optional[FilePath] = None,
 ) -> tuple[ParamDict, ParamDict]:
@@ -256,8 +256,8 @@ def setup_run(
 
     Parameters
     ----------
-    workflow_path : str or pathlib.Path
-        The path to the configuration file.
+    workflow_path : dict
+        Formatted dictionary for config file.
 
     restart_from : int
         The step to restart the run from (inclusive).
@@ -274,7 +274,7 @@ def setup_run(
         A dictionary with the general run parameters.
     """
     # read the user config file from path
-    config_files = read_config(workflow_path)
+    config_files = read_config(workflow)
 
     # update default non-mandatory parameters with user params
     params = recursive_dict_update(
